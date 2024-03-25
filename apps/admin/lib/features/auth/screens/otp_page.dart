@@ -1,38 +1,40 @@
+import 'package:admin/constants/scaffold_messenger.dart';
+import 'package:admin/features/auth/controller/auth_controller.dart';
 import 'package:admin/features/auth/screens/login_admin.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pinput/pinput.dart';
 
-class OtpPage extends StatefulWidget {
+class OtpPage extends ConsumerStatefulWidget {
   const OtpPage({super.key});
 
   @override
-  State<OtpPage> createState() => _OtpPageState();
+  ConsumerState<OtpPage> createState() => _OtpPageState();
 }
 
-class _OtpPageState extends State<OtpPage> {
+class _OtpPageState extends ConsumerState<OtpPage> {
   late TextEditingController otpController;
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     otpController = TextEditingController();
   }
 
   void navController() {
     Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => LoginPageAdmin()));
+        MaterialPageRoute(builder: (context) => const LoginPageAdmin()));
   }
 
   @override
   Widget build(BuildContext context) {
     final defaultPinTheme = PinTheme(
-      width: 56,
-      height: 56,
+      width: 47,
+      height: 52,
       textStyle: const TextStyle(
           fontSize: 20, color: Colors.white, fontWeight: FontWeight.w600),
       decoration: BoxDecoration(
         border: Border.all(color: const Color.fromRGBO(234, 239, 243, 1)),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(17),
       ),
     );
 
@@ -101,14 +103,30 @@ class _OtpPageState extends State<OtpPage> {
                 focusedPinTheme: focusedPinTheme,
                 submittedPinTheme: submittedPinTheme,
                 controller: otpController,
-                validator: (s) {
-                  if (s == '2222') {
-                    navController();
-                    return '';
-                  } else {
-                    otpController.text = '';
-                    return 'OTP is incorrect';
-                  }
+                length: 6,
+                onSubmitted: (s) async{
+                  MyScaffoldMessage().showScaffoldMessenge(
+                    context: context,
+                    content: s,
+                  );
+                  ref
+                      .watch(authControllerProvider)
+                      .verifyOtp(s.toString())
+                      .then((value) {
+                    Navigator.of(context)
+                        .push(
+                          MaterialPageRoute(
+                            builder: (context) => const HomeScreen(),
+                          ),
+                        )
+                        .onError(
+                          (error, _) =>
+                              MyScaffoldMessage().showScaffoldMessenge(
+                            context: context,
+                            content: error.toString(),
+                          ),
+                        );
+                  });
                 },
                 closeKeyboardWhenCompleted: true,
                 pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
@@ -132,10 +150,7 @@ class _OtpPageState extends State<OtpPage> {
                     ),
                   ),
                   GestureDetector(
-                    //making signup text clickabe
-                    onTap: () {
-                      //print('signup clicked');
-                    },
+                    onTap: () {},
                     child: const Text(
                       'Resend',
                       style: TextStyle(
@@ -152,6 +167,19 @@ class _OtpPageState extends State<OtpPage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(
+        child: Text('Welcome to Home'),
       ),
     );
   }
